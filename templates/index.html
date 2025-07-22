@@ -64,6 +64,10 @@
                                         <i class="fas fa-chart-line me-2"></i>
                                         Analytics
                                     </button>
+                                    <button type="button" class="btn btn-secondary" id="historyBtn">
+                                        <i class="fas fa-history me-2"></i>
+                                        History
+                                    </button>
                                     <button type="button" class="btn btn-outline-danger" id="clearBtn">
                                         <i class="fas fa-trash me-2"></i>
                                         Clear
@@ -230,6 +234,28 @@
                         </div>
                     </div>
                     
+                    <!-- History Section -->
+                    <div id="historySection" class="d-none">
+                        <div class="card mb-4">
+                            <div class="card-header bg-info">
+                                <h5 class="card-title mb-0 text-white">
+                                    <i class="fas fa-history me-2"></i>
+                                    Query History
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="historyContainer">
+                                    <div class="text-center">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading history...</span>
+                                        </div>
+                                        <p class="mt-2 text-muted">Loading your query history...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Error Section -->
                     <div id="errorSection" class="d-none">
                         <div class="alert alert-danger" role="alert">
@@ -268,11 +294,13 @@
         const sampleBtn = document.getElementById('sampleBtn');
         const dashboardBtn = document.getElementById('dashboardBtn');
         const analyticsBtn = document.getElementById('analyticsBtn');
+        const historyBtn = document.getElementById('historyBtn');
         const clearBtn = document.getElementById('clearBtn');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const resultsSection = document.getElementById('resultsSection');
         const dashboardSection = document.getElementById('dashboardSection');
         const analyticsSection = document.getElementById('analyticsSection');
+        const historySection = document.getElementById('historySection');
         const errorSection = document.getElementById('errorSection');
         const sampleModal = new bootstrap.Modal(document.getElementById('sampleModal'));
         
@@ -281,6 +309,7 @@
         sampleBtn.addEventListener('click', showSampleQuestions);
         dashboardBtn.addEventListener('click', showDashboard);
         analyticsBtn.addEventListener('click', showAnalytics);
+        historyBtn.addEventListener('click', showHistory);
         clearBtn.addEventListener('click', clearResults);
         
         // Handle form submission
@@ -373,6 +402,7 @@
             resultsSection.classList.add('d-none');
             dashboardSection.classList.add('d-none');
             analyticsSection.classList.add('d-none');
+            historySection.classList.add('d-none');
             errorSection.classList.add('d-none');
             document.getElementById('visualizationSection').classList.add('d-none');
         }
@@ -601,6 +631,93 @@
             } catch (e) {
                 console.error('Error rendering chart:', e);
             }
+        }
+        
+        // Show history
+        async function showHistory() {
+            showLoading();
+            try {
+                const response = await fetch('/history');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    hideAllSections();
+                    updateHistory(data.history);
+                    historySection.classList.remove('d-none');
+                } else {
+                    showError(data.error || 'Error loading history');
+                }
+            } catch (error) {
+                console.error('History error:', error);
+                showError('Error loading history');
+            }
+            resetSubmitButton();
+        }
+        
+        // Update history display
+        function updateHistory(history) {
+            const container = document.getElementById('historyContainer');
+            container.innerHTML = '';
+            
+            if (!history || history.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">No query history available yet. Start asking questions to build your history!</p>';
+                return;
+            }
+            
+            const table = document.createElement('div');
+            table.className = 'table-responsive';
+            
+            let tableHTML = `
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Question</th>
+                            <th scope="col">Summary</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Response Time</th>
+                            <th scope="col">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            history.forEach((item, index) => {
+                const date = new Date(item.created_at).toLocaleString();
+                const responseTime = item.execution_time_ms ? `${item.execution_time_ms}ms` : 'N/A';
+                const summary = item.summary || 'No summary available';
+                
+                tableHTML += `
+                    <tr>
+                        <td>${item.id}</td>
+                        <td class="text-break" style="max-width: 200px;">${item.question}</td>
+                        <td class="text-muted" style="max-width: 150px;">${summary}...</td>
+                        <td>${date}</td>
+                        <td><span class="badge bg-secondary">${responseTime}</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="reuseQuestion('${item.question.replace(/'/g, "\\'")}')">
+                                <i class="fas fa-redo"></i> Reuse
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            table.innerHTML = tableHTML;
+            container.appendChild(table);
+        }
+        
+        // Reuse question from history
+        function reuseQuestion(question) {
+            questionInput.value = question;
+            hideAllSections();
+            // Scroll to top
+            window.scrollTo(0, 0);
         }
         
         // Clear results

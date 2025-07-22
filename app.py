@@ -29,6 +29,9 @@ def index():
 @app.route('/ask', methods=['POST'])
 def ask_question():
     """API endpoint to process natural language questions"""
+    import time
+    start_time = time.time()
+    
     try:
         data = request.get_json()
         if not data or 'question' not in data:
@@ -66,12 +69,22 @@ def ask_question():
         # Try to generate visualization
         visualization = viz_engine.get_visualization_for_question(question, results)
         
+        # Calculate execution time and save to history
+        execution_time = int((time.time() - start_time) * 1000)
+        
+        # Extract summary from response (first 100 characters)
+        response_summary = response[:100] + "..." if len(response) > 100 else response
+        
+        # Save to history
+        db_manager.save_query_history(question, sql_query, response_summary, execution_time)
+        
         return jsonify({
             'question': question,
             'sql_query': sql_query,
             'raw_results': results,
             'response': response,
             'visualization': visualization,
+            'execution_time_ms': execution_time,
             'status': 'success'
         })
         
@@ -207,6 +220,44 @@ def get_visualization(chart_type):
         logger.error(f"Error generating visualization: {str(e)}")
         return jsonify({
             'error': f'Error generating visualization: {str(e)}',
+            'status': 'error'
+        }), 500
+
+@app.route('/history', methods=['GET'])
+def get_query_history():
+    """Get query history with basic details"""
+    try:
+        limit = request.args.get('limit', 20, type=int)
+        history = db_manager.get_query_history(limit)
+        return jsonify({
+            'history': history,
+            'status': 'success'
+        })
+    except Exception as e:
+        logger.error(f"Error getting history: {str(e)}")
+        return jsonify({
+            'error': f'History error: {str(e)}',
+            'status': 'error'
+        }), 500
+
+@app.route('/history/<int:query_id>', methods=['GET'])
+def get_query_detail(query_id):
+    """Get detailed information about a specific query"""
+    try:
+        detail = db_manager.get_query_detail(query_id)
+        if not detail:
+            return jsonify({
+                'error': 'Query not found',
+                'status': 'error'
+            }), 404
+        return jsonify({
+            'query': detail,
+            'status': 'success'
+        })
+    except Exception as e:
+        logger.error(f"Error getting query detail: {str(e)}")
+        return jsonify({
+            'error': f'Query detail error: {str(e)}',
             'status': 'error'
         }), 500
 

@@ -46,14 +46,29 @@ class DatabaseManager:
                 df_total_sales.to_sql('total_sales', self.engine, index=False, if_exists='replace')
                 logger.info(f"Loaded {len(df_total_sales)} total sales records")
             
-            # Create indexes for better performance
+            # Create query history table (persistent across restarts)
             with self.engine.connect() as conn:
                 from sqlalchemy import text
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS query_history (
+                        id SERIAL PRIMARY KEY,
+                        question TEXT NOT NULL,
+                        sql_query TEXT,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        response_summary TEXT,
+                        execution_time_ms INTEGER
+                    )
+                """))
+                conn.commit()
+                
+                # Create indexes for better performance
                 conn.execute(text("CREATE INDEX IF NOT EXISTS idx_eligibility_item_id ON eligibility(item_id)"))
                 conn.execute(text("CREATE INDEX IF NOT EXISTS idx_ad_sales_item_id ON ad_sales(item_id)"))
                 conn.execute(text("CREATE INDEX IF NOT EXISTS idx_ad_sales_date ON ad_sales(date)"))
                 conn.execute(text("CREATE INDEX IF NOT EXISTS idx_total_sales_item_id ON total_sales(item_id)"))
                 conn.execute(text("CREATE INDEX IF NOT EXISTS idx_total_sales_date ON total_sales(date)"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_history_created_at ON query_history(created_at)"))
+                conn.commit()
             
             logger.info("Database initialized successfully")
             
@@ -81,6 +96,77 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"Error executing query: {str(e)}")
             raise
+    
+    def save_query_history(self, question: str, sql_query: str, response_summary: str, execution_time_ms: int = None):
+        """Save query to history table"""
+        try:
+            with self.engine.connect() as conn:
+                from sqlalchemy import text
+                conn.execute(text("""
+                    INSERT INTO query_history (question, sql_query, response_summary, execution_time_ms)
+                    VALUES (:question, :sql_query, :response_summary, :execution_time_ms)
+                """), {
+                    'question': question,
+                    'sql_query': sql_query,
+                    'response_summary': response_summary[:500] if response_summary else None,  # Limit summary length
+                    'execution_time_ms': execution_time_ms
+                })
+                conn.commit()
+                
+        except Exception as e:
+            logger.error(f"Error saving query history: {str(e)}")
+    
+    def get_query_history(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """Get query history with basic details"""
+        try:
+            with self.engine.connect() as conn:
+                from sqlalchemy import text
+                result = conn.execute(text("""
+                    SELECT 
+                        id,
+                        question,
+                        SUBSTRING(response_summary FROM 1 FOR 100) as summary,
+                        created_at,
+                        execution_time_ms
+                    FROM query_history 
+                    ORDER BY created_at DESC 
+                    LIMIT :limit
+                """), {'limit': limit})
+                
+                rows = result.fetchall()
+                
+                if rows:
+                    columns = result.keys()
+                    results = [dict(zip(columns, row)) for row in rows]
+                else:
+                    results = []
+                
+                return results
+                
+        except Exception as e:
+            logger.error(f"Error getting query history: {str(e)}")
+            return []
+    
+    def get_query_detail(self, query_id: int) -> Dict[str, Any]:
+        """Get full details of a specific query"""
+        try:
+            with self.engine.connect() as conn:
+                from sqlalchemy import text
+                result = conn.execute(text("""
+                    SELECT * FROM query_history WHERE id = :id
+                """), {'id': query_id})
+                
+                row = result.fetchone()
+                
+                if row:
+                    columns = result.keys()
+                    return dict(zip(columns, row))
+                else:
+                    return {}
+                
+        except Exception as e:
+            logger.error(f"Error getting query detail: {str(e)}")
+            return {}
     
     def get_schema_info(self) -> str:
         """Get database schema information for AI context"""
