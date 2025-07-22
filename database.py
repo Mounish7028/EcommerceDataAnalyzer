@@ -84,10 +84,19 @@ class DatabaseManager:
                 result = conn.execute(text(query))
                 rows = result.fetchall()
                 
-                # Convert to list of dictionaries
+                # Convert to list of dictionaries and handle Decimal types
                 if rows:
                     columns = result.keys()
-                    results = [dict(zip(columns, row)) for row in rows]
+                    results = []
+                    for row in rows:
+                        row_dict = {}
+                        for col, val in zip(columns, row):
+                            # Convert Decimal to float for JSON serialization
+                            if hasattr(val, '__class__') and val.__class__.__name__ == 'Decimal':
+                                row_dict[col] = float(val)
+                            else:
+                                row_dict[col] = val
+                        results.append(row_dict)
                 else:
                     results = []
                 
