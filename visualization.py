@@ -229,7 +229,7 @@ class VisualizationEngine:
             FROM ad_sales 
             WHERE clicks > 0 AND ad_spend > 0
             GROUP BY item_id
-            HAVING total_spend > 10
+            HAVING SUM(ad_spend) > 10
             """
             results = self.db_manager.execute_query(query)
             
