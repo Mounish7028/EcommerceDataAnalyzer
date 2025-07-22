@@ -1,0 +1,89 @@
+/* Custom styles for the E-commerce AI Agent */
+
+.response-text {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+pre {
+    font-size: 0.875rem;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.card-header.bg-success {
+    background-color: var(--bs-success) !important;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+.list-group-item:hover {
+    cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .container-fluid {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+    
+    pre {
+        font-size: 0.75rem;
+        max-height: 200px;
+    }
+}
+
+/* Smooth transitions */
+.card, .alert {
+    transition: all 0.3s ease;
+}
+
+/* Code highlighting */
+pre {
+    background-color: var(--bs-dark) !important;
+    color: var(--bs-light);
+    border: 1px solid var(--bs-border-color);
+}
+
+/* Loading animation */
+#loadingIndicator {
+    padding: 2rem 0;
+}
+
+/* Button styling */
+.btn {
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Textarea auto-resize */
+#questionInput {
+    resize: none;
+    min-height: 80px;
+    transition: height 0.2s ease;
+}
+
+/* Modal improvements */
+.modal-content {
+    border: none;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* Footer styling */
+footer {
+    margin-top: auto;
+}

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-commerce AI Agent</title>
+    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='style.css') }}" rel="stylesheet">
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <header class="py-4 mb-4 border-bottom">
+                    <div class="container">
+                        <h1 class="display-4 text-center">
+                            <i class="fas fa-robot me-3"></i>
+                            E-commerce AI Agent
+                        </h1>
+                        <p class="lead text-center text-muted">
+                            Ask questions about your e-commerce data in natural language
+                        </p>
+                    </div>
+                </header>
+            </div>
+        </div>
+        
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <!-- Question Input Section -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-question-circle me-2"></i>
+                                Ask Your Question
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="questionForm">
+                                <div class="mb-3">
+                                    <textarea 
+                                        class="form-control" 
+                                        id="questionInput" 
+                                        rows="3" 
+                                        placeholder="e.g., What is my total sales? Calculate the RoAS. Which product had the highest CPC?"
+                                        required></textarea>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                                        <i class="fas fa-paper-plane me-2"></i>
+                                        Ask Question
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="sampleBtn">
+                                        <i class="fas fa-lightbulb me-2"></i>
+                                        Sample Questions
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger" id="clearBtn">
+                                        <i class="fas fa-trash me-2"></i>
+                                        Clear
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Sample Questions Modal -->
+                    <div class="modal fade" id="sampleModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Sample Questions</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p class="text-muted mb-3">Click on any question to use it:</p>
+                                    <div id="sampleQuestionsList" class="list-group">
+                                        <!-- Sample questions will be loaded here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Loading Indicator -->
+                    <div id="loadingIndicator" class="text-center d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Processing your question...</p>
+                    </div>
+                    
+                    <!-- Results Section -->
+                    <div id="resultsSection" class="d-none">
+                        <!-- AI Response -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-success">
+                                <h5 class="card-title mb-0 text-white">
+                                    <i class="fas fa-brain me-2"></i>
+                                    AI Response
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="aiResponse" class="response-text"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Technical Details (Collapsible) -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <button class="btn btn-link p-0 text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#technicalDetails">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-code me-2"></i>
+                                        Technical Details
+                                        <i class="fas fa-chevron-down ms-2"></i>
+                                    </h6>
+                                </button>
+                            </div>
+                            <div id="technicalDetails" class="collapse">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6>Generated SQL Query:</h6>
+                                            <pre id="sqlQuery" class="bg-dark p-3 rounded"></pre>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Raw Results:</h6>
+                                            <pre id="rawResults" class="bg-dark p-3 rounded"></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Error Section -->
+                    <div id="errorSection" class="d-none">
+                        <div class="alert alert-danger" role="alert">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Error
+                            </h6>
+                            <div id="errorMessage"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="mt-5 py-4 border-top">
+            <div class="container text-center">
+                <p class="text-muted mb-0">
+                    <i class="fas fa-database me-2"></i>
+                    Powered by AI • SQLite Database • Google Gemini
+                </p>
+            </div>
+        </footer>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Global variables
+        let sampleQuestions = [];
+        
+        // DOM elements
+        const questionForm = document.getElementById('questionForm');
+        const questionInput = document.getElementById('questionInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const sampleBtn = document.getElementById('sampleBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const resultsSection = document.getElementById('resultsSection');
+        const errorSection = document.getElementById('errorSection');
+        const sampleModal = new bootstrap.Modal(document.getElementById('sampleModal'));
+        
+        // Event listeners
+        questionForm.addEventListener('submit', handleSubmit);
+        sampleBtn.addEventListener('click', showSampleQuestions);
+        clearBtn.addEventListener('click', clearResults);
+        
+        // Handle form submission
+        async function handleSubmit(e) {
+            e.preventDefault();
+            
+            const question = questionInput.value.trim();
+            if (!question) {
+                showError('Please enter a question');
+                return;
+            }
+            
+            // Show loading state
+            showLoading();
+            
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showResults(data);
+                } else {
+                    showError(data.error || 'An error occurred');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Network error. Please try again.');
+            }
+        }
+        
+        // Show loading state
+        function showLoading() {
+            hideAllSections();
+            loadingIndicator.classList.remove('d-none');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        }
+        
+        // Show results
+        function showResults(data) {
+            hideAllSections();
+            
+            // Update AI response
+            document.getElementById('aiResponse').innerHTML = formatResponse(data.response);
+            
+            // Update technical details
+            document.getElementById('sqlQuery').textContent = data.sql_query;
+            document.getElementById('rawResults').textContent = JSON.stringify(data.raw_results, null, 2);
+            
+            // Show results section
+            resultsSection.classList.remove('d-none');
+            
+            // Reset submit button
+            resetSubmitButton();
+        }
+        
+        // Show error
+        function showError(message) {
+            hideAllSections();
+            document.getElementById('errorMessage').textContent = message;
+            errorSection.classList.remove('d-none');
+            resetSubmitButton();
+        }
+        
+        // Hide all sections
+        function hideAllSections() {
+            loadingIndicator.classList.add('d-none');
+            resultsSection.classList.add('d-none');
+            errorSection.classList.add('d-none');
+        }
+        
+        // Reset submit button
+        function resetSubmitButton() {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Ask Question';
+        }
+        
+        // Format response text
+        function formatResponse(text) {
+            // Simple formatting: convert newlines to breaks and make numbers bold
+            return text
+                .replace(/\n/g, '<br>')
+                .replace(/\$[\d,]+\.?\d*/g, '<strong>$&</strong>')
+                .replace(/\b\d+\.?\d*%\b/g, '<strong>$&</strong>');
+        }
+        
+        // Show sample questions
+        async function showSampleQuestions() {
+            if (sampleQuestions.length === 0) {
+                try {
+                    const response = await fetch('/sample-questions');
+                    const data = await response.json();
+                    sampleQuestions = data.sample_questions || [];
+                } catch (error) {
+                    console.error('Error loading sample questions:', error);
+                    sampleQuestions = [
+                        "What is my total sales?",
+                        "Calculate the RoAS (Return on Ad Spend)",
+                        "Which product had the highest CPC (Cost Per Click)?"
+                    ];
+                }
+            }
+            
+            // Populate sample questions list
+            const listContainer = document.getElementById('sampleQuestionsList');
+            listContainer.innerHTML = '';
+            
+            sampleQuestions.forEach(question => {
+                const button = document.createElement('button');
+                button.className = 'list-group-item list-group-item-action';
+                button.textContent = question;
+                button.addEventListener('click', () => {
+                    questionInput.value = question;
+                    sampleModal.hide();
+                });
+                listContainer.appendChild(button);
+            });
+            
+            sampleModal.show();
+        }
+        
+        // Clear results
+        function clearResults() {
+            questionInput.value = '';
+            hideAllSections();
+        }
+        
+        // Auto-resize textarea
+        questionInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+    </script>
+</body>
+</html>
