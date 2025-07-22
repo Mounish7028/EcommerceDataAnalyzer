@@ -1,55 +1,59 @@
-import sqlite3
+import psycopg2
+import psycopg2.extras
 import pandas as pd
 import logging
 import os
 from typing import List, Dict, Any
+from sqlalchemy import create_engine
 
 logger = logging.getLogger(__name__)
 
 class DatabaseManager:
-    def __init__(self, db_path='ecommerce_data.db'):
-        self.db_path = db_path
+    def __init__(self):
+        self.database_url = os.environ.get("DATABASE_URL")
+        if not self.database_url:
+            # Fallback to SQLite for development
+            self.database_url = "sqlite:///ecommerce_data.db"
+            self.use_postgres = False
+            logger.info("Using SQLite database (PostgreSQL URL not found)")
+        else:
+            self.use_postgres = True
+            logger.info("Using PostgreSQL database")
+        
+        self.engine = create_engine(self.database_url)
         
     def initialize_database(self):
         """Initialize the database and load CSV data"""
         try:
-            # Remove existing database to start fresh
-            if os.path.exists(self.db_path):
-                os.remove(self.db_path)
-                
-            conn = sqlite3.connect(self.db_path)
-            
             # Load eligibility data
             eligibility_file = 'attached_assets/Product-Level Eligibility Table (mapped) - Product-Level Eligibility Table (mapped)_1753169615993.csv'
             if os.path.exists(eligibility_file):
                 df_eligibility = pd.read_csv(eligibility_file)
-                df_eligibility.to_sql('eligibility', conn, index=False, if_exists='replace')
+                df_eligibility.to_sql('eligibility', self.engine, index=False, if_exists='replace')
                 logger.info(f"Loaded {len(df_eligibility)} eligibility records")
             
             # Load ad sales data
             ad_sales_file = 'attached_assets/Product-Level Ad Sales and Metrics (mapped) - Product-Level Ad Sales and Metrics (mapped)_1753169682186.csv'
             if os.path.exists(ad_sales_file):
                 df_ad_sales = pd.read_csv(ad_sales_file)
-                df_ad_sales.to_sql('ad_sales', conn, index=False, if_exists='replace')
+                df_ad_sales.to_sql('ad_sales', self.engine, index=False, if_exists='replace')
                 logger.info(f"Loaded {len(df_ad_sales)} ad sales records")
             
             # Load total sales data
             total_sales_file = 'attached_assets/Product-Level Total Sales and Metrics (mapped) - Product-Level Total Sales and Metrics (mapped)_1753169682185.csv'
             if os.path.exists(total_sales_file):
                 df_total_sales = pd.read_csv(total_sales_file)
-                df_total_sales.to_sql('total_sales', conn, index=False, if_exists='replace')
+                df_total_sales.to_sql('total_sales', self.engine, index=False, if_exists='replace')
                 logger.info(f"Loaded {len(df_total_sales)} total sales records")
             
             # Create indexes for better performance
-            cursor = conn.cursor()
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_eligibility_item_id ON eligibility(item_id)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_ad_sales_item_id ON ad_sales(item_id)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_ad_sales_date ON ad_sales(date)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_total_sales_item_id ON total_sales(item_id)')
-            cursor.execute('CREATE INDEX IF NOT EXISTS idx_total_sales_date ON total_sales(date)')
-            
-            conn.commit()
-            conn.close()
+            with self.engine.connect() as conn:
+                from sqlalchemy import text
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_eligibility_item_id ON eligibility(item_id)"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_ad_sales_item_id ON ad_sales(item_id)"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_ad_sales_date ON ad_sales(date)"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_total_sales_item_id ON total_sales(item_id)"))
+                conn.execute(text("CREATE INDEX IF NOT EXISTS idx_total_sales_date ON total_sales(date)"))
             
             logger.info("Database initialized successfully")
             
@@ -60,19 +64,19 @@ class DatabaseManager:
     def execute_query(self, query: str) -> List[Dict[str, Any]]:
         """Execute a SQL query and return results as list of dictionaries"""
         try:
-            conn = sqlite3.connect(self.db_path)
-            conn.row_factory = sqlite3.Row  # This enables column access by name
-            cursor = conn.cursor()
-            
-            # Execute the query
-            cursor.execute(query)
-            rows = cursor.fetchall()
-            
-            # Convert to list of dictionaries
-            results = [dict(row) for row in rows]
-            
-            conn.close()
-            return results
+            with self.engine.connect() as conn:
+                from sqlalchemy import text
+                result = conn.execute(text(query))
+                rows = result.fetchall()
+                
+                # Convert to list of dictionaries
+                if rows:
+                    columns = result.keys()
+                    results = [dict(zip(columns, row)) for row in rows]
+                else:
+                    results = []
+                
+                return results
             
         except Exception as e:
             logger.error(f"Error executing query: {str(e)}")

@@ -23,9 +23,10 @@ Preferred communication style: Simple, everyday language.
 - **Styling**: Custom CSS with Font Awesome icons
 
 ### Data Layer
-- **Database Engine**: SQLite for lightweight, file-based storage
+- **Database Engine**: PostgreSQL for production-grade performance and scalability
 - **Schema Design**: Three main tables (eligibility, ad_sales, total_sales) with proper indexing
-- **Data Import**: CSV-to-SQL conversion pipeline using Pandas
+- **Data Import**: CSV-to-SQL conversion pipeline using Pandas and SQLAlchemy
+- **Connection**: SQLAlchemy ORM for database abstraction and compatibility
 
 ## Key Components
 
@@ -129,8 +130,9 @@ Preferred communication style: Simple, everyday language.
 
 ### Database Setup
 - **Initialization**: Automatic database creation and data loading on startup
-- **Storage**: Local SQLite file (`ecommerce_data.db`)
-- **Data Refresh**: Database is recreated each time the application starts
+- **Storage**: PostgreSQL database (production-ready)
+- **Data Refresh**: Database tables are recreated each time the application starts
+- **Connection**: Managed through DATABASE_URL environment variable
 
 ### Development Mode
 - **Debug Logging**: Enabled for development
@@ -140,7 +142,7 @@ Preferred communication style: Simple, everyday language.
 ### Production Considerations
 - **Security**: Environment-based secret management
 - **Performance**: Database indexing for optimized queries
-- **Scalability**: SQLite suitable for moderate data volumes
+- **Scalability**: PostgreSQL suitable for production workloads and large data volumes
 - **Monitoring**: Structured logging for debugging and monitoring
 
 ### File Structure
@@ -194,3 +196,10 @@ Preferred communication style: Simple, everyday language.
 - Comprehensive error handling across all features
 - Responsive design for mobile and desktop use
 - Performance scoring and actionable recommendations for products
+
+### Database Migration to PostgreSQL (July 22, 2025)
+- **Upgraded Database**: Migrated from SQLite to PostgreSQL for production-grade performance
+- **Enhanced Scalability**: PostgreSQL supports larger datasets and concurrent connections
+- **SQLAlchemy Integration**: Added proper ORM layer for better database abstraction
+- **Improved Performance**: Better query optimization and indexing capabilities
+- **Production Ready**: Database now suitable for deployment and scaling

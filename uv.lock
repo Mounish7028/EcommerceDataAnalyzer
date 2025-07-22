@@ -1118,6 +1118,7 @@ dependencies = [
     { name = "psycopg2-binary" },
     { name = "seaborn" },
     { name = "sift-stack-py" },
+    { name = "sqlalchemy" },
 ]
 
 [package.metadata]
@@ -1133,6 +1134,7 @@ requires-dist = [
     { name = "psycopg2-binary", specifier = ">=2.9.10" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "sift-stack-py", specifier = ">=0.7.0" },
+    { name = "sqlalchemy", specifier = ">=2.0.41" },
 ]
 
 [[package]]
