@@ -1,12 +1,15 @@
 # Local Development Setup Guide
 
-<img width="1146" height="586" alt="image" src="https://github.com/user-attachments/assets/21750311-c18d-4492-8a56-0e10b7501393" />
+#Preview of Project:-
+
 <img width="1899" height="962" alt="image" src="https://github.com/user-attachments/assets/1e9c605c-a903-4e79-89b3-462b00f1fad1" />
 <img width="1876" height="953" alt="image" src="https://github.com/user-attachments/assets/24448be2-99db-44a4-bf2c-d8fae50a3786" />
 <img width="1923" height="961" alt="image" src="https://github.com/user-attachments/assets/f68b2933-0641-4c7c-b0ca-bd4db38ac72c" />
 <img width="1914" height="940" alt="image" src="https://github.com/user-attachments/assets/041657fc-fe48-458f-a405-ffb08ecfd9cf" />
 <img width="1902" height="993" alt="image" src="https://github.com/user-attachments/assets/f0fe69d6-9cb7-4204-81ae-ad49838b1a8c" />
 <img width="1786" height="909" alt="image" src="https://github.com/user-attachments/assets/734182fa-12ce-4a4a-b0c2-c30b4f813efe" />
+<img width="1409" height="957" alt="image" src="https://github.com/user-attachments/assets/aaff2b10-5a5e-43ce-a4db-df9f9a19f204" />
+<img width="1146" height="586" alt="image" src="https://github.com/user-attachments/assets/21750311-c18d-4492-8a56-0e10b7501393" />
 
 
 
