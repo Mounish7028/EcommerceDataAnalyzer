@@ -42,17 +42,45 @@ Preferred communication style: Simple, everyday language.
   - Index creation for performance optimization
   - Connection management and error handling
 
-### 3. Flask Application (`app.py`)
-- **Purpose**: Web server and API endpoint management
+### 3. Visualization Engine (`visualization.py`)
+- **Purpose**: Creates interactive charts and graphs using Plotly
+- **Features**: 
+  - Sales trend charts with time-series data
+  - Top products bar charts with revenue analysis
+  - RoAS performance charts with color-coded performance levels
+  - Product eligibility pie charts
+  - Ad performance scatter plots (CPC vs Conversion Rate)
+  - Automatic chart selection based on question context
+
+### 4. Advanced Analytics (`analytics.py`)
+- **Purpose**: Provides comprehensive business intelligence and product analysis
+- **Features**: 
+  - Business summary dashboard with key metrics
+  - Product performance scoring (0-100 scale)
+  - Automated recommendations based on performance
+  - Time-based trend analysis
+  - ROI calculations and efficiency metrics
+
+### 5. Flask Application (`app.py`)
+- **Purpose**: Web server and comprehensive API endpoint management
 - **Endpoints**:
   - `/` - Main interface (GET)
-  - `/ask` - Question processing API (POST)
-- **Features**: JSON API responses, error handling, logging
+  - `/ask` - Question processing API with visualization support (POST)
+  - `/dashboard` - Comprehensive business dashboard (GET)
+  - `/analytics/products` - Detailed product performance analytics (GET)
+  - `/visualizations/<chart_type>` - Individual chart generation (GET)
+  - `/sample-questions` - Enhanced sample questions (GET)
+- **Features**: JSON API responses, error handling, logging, visualization integration
 
-### 4. Web Interface (`templates/index.html`)
-- **Purpose**: User-friendly interface for asking questions
-- **Features**: Responsive design, dark theme, form validation
-- **UX Elements**: Loading states, error messages, result display
+### 6. Enhanced Web Interface (`templates/index.html`)
+- **Purpose**: Full-featured business intelligence interface
+- **Features**: 
+  - Multi-tab interface (Questions, Dashboard, Analytics)
+  - Interactive Plotly charts with responsive design
+  - Real-time business summary cards
+  - Product performance tables with scoring
+  - Automated recommendations display
+  - Bootstrap dark theme with professional styling
 
 ## Data Flow
 
@@ -74,12 +102,16 @@ Preferred communication style: Simple, everyday language.
 - `pandas`: Data manipulation and CSV processing
 - `sqlite3`: Database operations
 - `google-genai`: Google Gemini AI client
+- `plotly`: Interactive data visualization
+- `matplotlib`: Statistical plotting
+- `seaborn`: Advanced statistical visualization
 - `logging`: Application logging
 - `json`: JSON handling
 
 ### Frontend Dependencies
 - **Bootstrap**: CSS framework with dark theme
 - **Font Awesome**: Icon library
+- **Plotly.js**: Interactive charting library
 - **Custom CSS**: Additional styling
 
 ### Data Sources
@@ -116,9 +148,49 @@ Preferred communication style: Simple, everyday language.
 ├── app.py                 # Main Flask application
 ├── ai_agent.py           # AI query generation
 ├── database.py           # Database operations
+├── visualization.py      # Interactive chart generation
+├── analytics.py          # Business intelligence & analytics
+├── main.py               # Application entry point
 ├── templates/
-│   └── index.html        # Web interface
+│   └── index.html        # Enhanced web interface
 ├── static/
 │   └── style.css         # Custom styling
 └── attached_assets/      # CSV data files
 ```
+
+## Recent Changes (July 22, 2025)
+
+### Added Comprehensive Additional Features
+- **Data Visualization**: Implemented complete Plotly-based charting system
+  - Sales trend charts with time-series analysis
+  - Top products bar charts with revenue breakdown
+  - RoAS performance analysis with color-coded performance indicators
+  - Product eligibility distribution pie charts
+  - Advanced scatter plots for ad performance analysis (CPC vs Conversion Rate)
+
+- **Advanced Analytics**: Built comprehensive business intelligence module
+  - Product performance scoring system (0-100 scale)
+  - Automated performance recommendations based on metrics
+  - Business summary dashboard with key KPIs
+  - Time-based trend analysis for sales and ad performance
+  - ROI and efficiency calculations
+
+- **Enhanced User Interface**: Upgraded to multi-functional business dashboard
+  - Added Dashboard tab with real-time business metrics
+  - Added Analytics tab with detailed product performance tables
+  - Integrated interactive Plotly charts directly in web interface
+  - Enhanced sample questions to include visualization requests
+  - Professional Bootstrap styling with responsive design
+
+- **Extended API Endpoints**: Added comprehensive API coverage
+  - `/dashboard` - Complete business summary with visualizations
+  - `/analytics/products` - Detailed product performance analysis
+  - `/visualizations/<chart_type>` - Individual chart generation
+  - Enhanced `/ask` endpoint with automatic visualization detection
+
+### Performance & User Experience Improvements
+- Automatic chart generation based on question context
+- Real-time loading indicators for all operations
+- Comprehensive error handling across all features
+- Responsive design for mobile and desktop use
+- Performance scoring and actionable recommendations for products

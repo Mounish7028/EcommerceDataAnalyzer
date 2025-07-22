@@ -47,7 +47,7 @@
                                         placeholder="e.g., What is my total sales? Calculate the RoAS. Which product had the highest CPC?"
                                         required></textarea>
                                 </div>
-                                <div class="d-flex gap-2">
+                                <div class="d-flex gap-2 flex-wrap">
                                     <button type="submit" class="btn btn-primary" id="submitBtn">
                                         <i class="fas fa-paper-plane me-2"></i>
                                         Ask Question
@@ -55,6 +55,14 @@
                                     <button type="button" class="btn btn-outline-secondary" id="sampleBtn">
                                         <i class="fas fa-lightbulb me-2"></i>
                                         Sample Questions
+                                    </button>
+                                    <button type="button" class="btn btn-info" id="dashboardBtn">
+                                        <i class="fas fa-chart-pie me-2"></i>
+                                        Dashboard
+                                    </button>
+                                    <button type="button" class="btn btn-success" id="analyticsBtn">
+                                        <i class="fas fa-chart-line me-2"></i>
+                                        Analytics
                                     </button>
                                     <button type="button" class="btn btn-outline-danger" id="clearBtn">
                                         <i class="fas fa-trash me-2"></i>
@@ -106,6 +114,19 @@
                             </div>
                         </div>
                         
+                        <!-- Visualization Section -->
+                        <div id="visualizationSection" class="card mb-4 d-none">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-chart-bar me-2"></i>
+                                    Data Visualization
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="chartContainer" style="height: 500px;"></div>
+                            </div>
+                        </div>
+                        
                         <!-- Technical Details (Collapsible) -->
                         <div class="card mb-4">
                             <div class="card-header">
@@ -130,6 +151,81 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dashboard Section -->
+                    <div id="dashboardSection" class="d-none">
+                        <!-- Business Summary -->
+                        <div class="card mb-4">
+                            <div class="card-header bg-info">
+                                <h5 class="card-title mb-0 text-white">
+                                    <i class="fas fa-tachometer-alt me-2"></i>
+                                    Business Summary
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="businessSummary" class="row"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Key Visualizations -->
+                        <div class="row">
+                            <div class="col-lg-6 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">Sales Trend</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="salesTrendChart" style="height: 300px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">Top Products</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="topProductsChart" style="height: 300px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">RoAS Performance</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="roasChart" style="height: 300px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="card-title mb-0">Product Eligibility</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="eligibilityChart" style="height: 300px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Analytics Section -->
+                    <div id="analyticsSection" class="d-none">
+                        <div class="card mb-4">
+                            <div class="card-header bg-warning">
+                                <h5 class="card-title mb-0 text-dark">
+                                    <i class="fas fa-chart-line me-2"></i>
+                                    Product Performance Analytics
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="productAnalytics"></div>
                             </div>
                         </div>
                     </div>
@@ -160,6 +256,7 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script>
         // Global variables
         let sampleQuestions = [];
@@ -169,15 +266,21 @@
         const questionInput = document.getElementById('questionInput');
         const submitBtn = document.getElementById('submitBtn');
         const sampleBtn = document.getElementById('sampleBtn');
+        const dashboardBtn = document.getElementById('dashboardBtn');
+        const analyticsBtn = document.getElementById('analyticsBtn');
         const clearBtn = document.getElementById('clearBtn');
         const loadingIndicator = document.getElementById('loadingIndicator');
         const resultsSection = document.getElementById('resultsSection');
+        const dashboardSection = document.getElementById('dashboardSection');
+        const analyticsSection = document.getElementById('analyticsSection');
         const errorSection = document.getElementById('errorSection');
         const sampleModal = new bootstrap.Modal(document.getElementById('sampleModal'));
         
         // Event listeners
         questionForm.addEventListener('submit', handleSubmit);
         sampleBtn.addEventListener('click', showSampleQuestions);
+        dashboardBtn.addEventListener('click', showDashboard);
+        analyticsBtn.addEventListener('click', showAnalytics);
         clearBtn.addEventListener('click', clearResults);
         
         // Handle form submission
@@ -235,6 +338,20 @@
             document.getElementById('sqlQuery').textContent = data.sql_query;
             document.getElementById('rawResults').textContent = JSON.stringify(data.raw_results, null, 2);
             
+            // Show visualization if available
+            if (data.visualization) {
+                const vizSection = document.getElementById('visualizationSection');
+                const chartContainer = document.getElementById('chartContainer');
+                
+                try {
+                    const chartData = JSON.parse(data.visualization);
+                    Plotly.newPlot(chartContainer, chartData.data, chartData.layout, {responsive: true});
+                    vizSection.classList.remove('d-none');
+                } catch (e) {
+                    console.error('Error rendering visualization:', e);
+                }
+            }
+            
             // Show results section
             resultsSection.classList.remove('d-none');
             
@@ -254,7 +371,10 @@
         function hideAllSections() {
             loadingIndicator.classList.add('d-none');
             resultsSection.classList.add('d-none');
+            dashboardSection.classList.add('d-none');
+            analyticsSection.classList.add('d-none');
             errorSection.classList.add('d-none');
+            document.getElementById('visualizationSection').classList.add('d-none');
         }
         
         // Reset submit button
@@ -305,6 +425,182 @@
             });
             
             sampleModal.show();
+        }
+        
+        // Show dashboard
+        async function showDashboard() {
+            showLoading();
+            try {
+                const response = await fetch('/dashboard');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    hideAllSections();
+                    
+                    // Update business summary
+                    updateBusinessSummary(data.business_summary);
+                    
+                    // Update visualizations
+                    if (data.visualizations.sales_trend) {
+                        renderChart('salesTrendChart', data.visualizations.sales_trend);
+                    }
+                    if (data.visualizations.top_products) {
+                        renderChart('topProductsChart', data.visualizations.top_products);
+                    }
+                    if (data.visualizations.roas_chart) {
+                        renderChart('roasChart', data.visualizations.roas_chart);
+                    }
+                    if (data.visualizations.eligibility_chart) {
+                        renderChart('eligibilityChart', data.visualizations.eligibility_chart);
+                    }
+                    
+                    dashboardSection.classList.remove('d-none');
+                } else {
+                    showError(data.error || 'Error loading dashboard');
+                }
+            } catch (error) {
+                console.error('Dashboard error:', error);
+                showError('Error loading dashboard');
+            }
+            resetSubmitButton();
+        }
+        
+        // Show analytics
+        async function showAnalytics() {
+            showLoading();
+            try {
+                const response = await fetch('/analytics/products');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    hideAllSections();
+                    updateProductAnalytics(data.products);
+                    analyticsSection.classList.remove('d-none');
+                } else {
+                    showError(data.error || 'Error loading analytics');
+                }
+            } catch (error) {
+                console.error('Analytics error:', error);
+                showError('Error loading analytics');
+            }
+            resetSubmitButton();
+        }
+        
+        // Update business summary
+        function updateBusinessSummary(summary) {
+            const container = document.getElementById('businessSummary');
+            container.innerHTML = '';
+            
+            if (summary.sales_metrics) {
+                const sales = summary.sales_metrics;
+                container.innerHTML += `
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h6>Total Revenue</h6>
+                                <h4>$${(sales.total_revenue || 0).toLocaleString()}</h4>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (summary.ad_metrics) {
+                const ads = summary.ad_metrics;
+                container.innerHTML += `
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h6>Overall RoAS</h6>
+                                <h4>${(ads.overall_roas || 0).toFixed(2)}x</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <h6>Average CPC</h6>
+                                <h4>$${(ads.avg_cpc || 0).toFixed(2)}</h4>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            if (summary.eligibility_metrics) {
+                const elig = summary.eligibility_metrics;
+                container.innerHTML += `
+                    <div class="col-md-3 mb-3">
+                        <div class="card bg-warning text-dark">
+                            <div class="card-body">
+                                <h6>Eligible Products</h6>
+                                <h4>${elig.eligible_products || 0}</h4>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // Update product analytics
+        function updateProductAnalytics(products) {
+            const container = document.getElementById('productAnalytics');
+            container.innerHTML = '';
+            
+            if (!products || products.length === 0) {
+                container.innerHTML = '<p class="text-muted">No product data available</p>';
+                return;
+            }
+            
+            let tableHTML = `
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Product ID</th>
+                                <th>Revenue</th>
+                                <th>RoAS</th>
+                                <th>CPC</th>
+                                <th>Conv. Rate</th>
+                                <th>Score</th>
+                                <th>Recommendations</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            products.forEach(product => {
+                const scoreColor = product.performance_score >= 80 ? 'success' : 
+                                 product.performance_score >= 60 ? 'warning' : 'danger';
+                
+                tableHTML += `
+                    <tr>
+                        <td><strong>${product.item_id}</strong></td>
+                        <td>$${(product.total_revenue || 0).toLocaleString()}</td>
+                        <td>${(product.roas || 0).toFixed(2)}x</td>
+                        <td>$${(product.cpc || 0).toFixed(2)}</td>
+                        <td>${(product.conversion_rate || 0).toFixed(1)}%</td>
+                        <td><span class="badge bg-${scoreColor}">${(product.performance_score || 0).toFixed(0)}</span></td>
+                        <td>
+                            ${(product.recommendations || []).map(rec => `<small class="d-block">${rec}</small>`).join('')}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table></div>';
+            container.innerHTML = tableHTML;
+        }
+        
+        // Render chart helper
+        function renderChart(containerId, chartJson) {
+            try {
+                const chartData = JSON.parse(chartJson);
+                const container = document.getElementById(containerId);
+                Plotly.newPlot(container, chartData.data, chartData.layout, {responsive: true});
+            } catch (e) {
+                console.error('Error rendering chart:', e);
+            }
         }
         
         // Clear results
