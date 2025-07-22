@@ -210,3 +210,11 @@ Preferred communication style: Simple, everyday language.
 - **Query Reuse Functionality**: Users can click to reuse previous questions for easy re-execution
 - **Performance Metrics**: Tracks and displays execution time for each query
 - **Database Schema**: Added query_history table with question, SQL query, summary, timestamp, and execution time
+
+### Local Development Support (July 22, 2025)
+- **Local Setup Guide**: Created comprehensive LOCAL_SETUP.md with step-by-step instructions
+- **Environment Variable Support**: Added .env file support for local development with python-dotenv
+- **Setup Verification Script**: Created setup_local.py to check local environment requirements
+- **Database Viewer Tool**: Added view_database.py for local PostgreSQL data inspection and querying
+- **VS Code Integration**: Provided configuration files and debugging setup for VS Code development
+- **Full Feature Compatibility**: All features work identically in local environment as in Replit
